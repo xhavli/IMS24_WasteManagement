@@ -1,0 +1,18 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "make_compile",
+            "type": "shell",
+            "command": "make",                  // executes make 
+            "args": ["all"],           // with "scanner_test" argument
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            }
+        },
+        //{
+            //here you can create new task
+        //},
+    ]
+}

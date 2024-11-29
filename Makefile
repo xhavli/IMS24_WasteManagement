@@ -2,10 +2,10 @@
 COMPILER = g++
 
 # Define compiler flags
-COMPILER_FLAGS = -g -std=c++11 -Wall
+COMPILER_FLAGS = -g -std=c++11 -Wall -Werror
 
 # Define the library flags
-LIBS = -lpcap -lncurses
+LIBS= -lsimlib -lm
 
 # Define the source directory and files
 SRC_DIR = src
