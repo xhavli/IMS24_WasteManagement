@@ -1,8 +1,9 @@
 #include "simlib.h"
+#include <random>
 
 // Constants
+FILE *resultsFile = fopen("results.out", "w");
 
-// Constants
 const int MINUTE = 1;       // simulation step equals one minute
 const int TRUCKS_ARRIVAL = 20 * MINUTE;
 const int HOUR = 60 * MINUTE;
@@ -15,6 +16,12 @@ double heap = 0.0;             // Current waste on the heap
 double flushedWaste = 0.0;     // Total flushed waste
 double boilerWasteProcessed = 0.0; // Total waste processed by boilers
 
+// Random number generator and distributions
+std::random_device rd;
+std::mt19937 gen(rd()); // Mersenne Twister engine seeded with random device
+std::uniform_real_distribution<> truckWasteDist(7.0, 15.0); // For truck waste [7, 15]
+std::uniform_real_distribution<> boilerConsumptionDist(14.0, 16.0); // For boiler consumption [14, 16]
+
 // Histograms
 Histogram heapSizeHistogram("Heap Size Distribution", 0.0, 25.0, 8); // 8 bins, 25 tons each
 Histogram boilerConsumptionHistogram("Boiler Consumption per Operation", 0.0, 20.0, 10); // 10 bins, 2 tons each
@@ -22,15 +29,15 @@ Histogram boilerConsumptionHistogram("Boiler Consumption per Operation", 0.0, 20
 // Garbage Truck Arrival Event
 class GarbageTruckArrival : public Event {
     void Behavior() override {
-        double waste = Uniform(7, 15); // Generate waste (7-15 tons)
+        double waste = truckWasteDist(gen); // Generate waste (7-15 tons)
 
         if (heap + waste > HEAP_CAPACITY) {
             flushedWaste += (heap + waste) - HEAP_CAPACITY; // Increment flushed waste
             heap = HEAP_CAPACITY; // Heap remains at max capacity
-            printf("Heap overflow. Flushed waste: %.2f tons\n", flushedWaste);
+            fprintf(resultsFile, "Heap overflow. Flushed waste: %.2f tons\n", flushedWaste);
         } else {
             heap += waste; // Add waste to heap
-            printf("Truck arrived. Added %.2f tons. Current heap: %.2f tons\n", waste, heap);
+            fprintf(resultsFile, "Truck arrived. Added %.2f tons. Current heap: %.2f tons\n", waste, heap);
         }
 
         // Record heap size in histogram
@@ -44,14 +51,14 @@ class GarbageTruckArrival : public Event {
 class BoilerOperation : public Event {
     void Behavior() override {
         for (int i = 0; i < 2; i++) { // Two boilers
-            double consumption = Uniform(14, 16); // Each boiler's consumption
+            double consumption = boilerConsumptionDist(gen); // Each boiler's consumption
             if (heap >= consumption) {
                 heap -= consumption;
                 boilerWasteProcessed += consumption;
-                printf("Boiler %d processed %.2f tons. Current heap: %.2f tons\n", i + 1, consumption, heap);
+                fprintf(resultsFile, "Boiler %d processed %.2f tons. Current heap: %.2f tons\n", i + 1, consumption, heap);
             } else {
                 boilerWasteProcessed += heap;
-                printf("Boiler %d processed %.2f tons (partial). Heap empty.\n", i + 1, heap);
+                fprintf(resultsFile, "Boiler %d processed %.2f tons (partial). Heap empty.\n", i + 1, heap);
                 heap = 0.0; // Heap is empty
             }
 
@@ -69,6 +76,7 @@ class BoilerOperation : public Event {
 // Main Program
 int main() {
     // Initialize the simulation
+    SetOutput("results.out");
     Init(0, YEAR); // Simulate for 1 year
 
     // Schedule the first events
@@ -79,16 +87,16 @@ int main() {
     Run();
 
     // Print final results
-    printf("====================================\n");
-    printf("Simulation Results:\n");
-    printf("Total waste flushed on dump: %.2f tons\n", flushedWaste);
-    printf("Total waste processed by boilers: %.2f tons\n", boilerWasteProcessed);
-    printf("====================================\n");
+    fprintf(resultsFile, "====================================\n");
+    fprintf(resultsFile, "Simulation Results:\n");
+    fprintf(resultsFile, "Total waste flushed on dump: %.2f tons\n", flushedWaste);
+    fprintf(resultsFile, "Total waste processed by boilers: %.2f tons\n", boilerWasteProcessed);
+    fprintf(resultsFile, "====================================\n");
 
     // Output histogram statistics
-    printf("\nHeap Size Histogram:\n");
+    fprintf(resultsFile, "\nHeap Size Histogram:\n");
     heapSizeHistogram.Output();
-    printf("\nBoiler Consumption Histogram:\n");
+    fprintf(resultsFile, "\nBoiler Consumption Histogram:\n");
     boilerConsumptionHistogram.Output();
 
     return 0;
