@@ -1,103 +1,107 @@
-#include "simlib.h"
-#include <random>
+#include "simlib.h" // Include the SIMLIB library
+#include <math.h>
+#include <time.h>
 
 // Constants
-FILE *resultsFile = fopen("results.out", "w");
-
 const int MINUTE = 1;       // simulation step equals one minute
 const int TRUCKS_ARRIVAL = 20 * MINUTE;
 const int HOUR = 60 * MINUTE;
 const int DAY = 24 * HOUR;
 const int YEAR = 365 * DAY;
-const double HEAP_CAPACITY = 200.0;     // 200 tons
+const double HEAP_CAPACITY = 200.0;    // 200 tons
+const double BOILER_CAPACITY = 15.0;   // 15 tons per hour per boiler
+const double WORK_START = 6.0 * HOUR;         // Start of working hours (6:00 AM)
+const double WORK_END = 14.0 * HOUR;          // End of working hours (2:00 PM)
+// const double WORK_END_BOILER = 20.0;   // End of working hours (8:00 PM)
+const double HOURS_IN_DAY = 24.0;      // Duration of a day in hours
 
-// Variables
-double heap = 0.0;             // Current waste on the heap
-double flushedWaste = 0.0;     // Total flushed waste
-double boilerWasteProcessed = 0.0; // Total waste processed by boilers
+FILE *outputFile = fopen("results.out", "w");
 
-// Random number generator and distributions
-std::random_device rd;
-std::mt19937 gen(rd()); // Mersenne Twister engine seeded with random device
-std::uniform_real_distribution<> truckWasteDist(7.0, 15.0); // For truck waste [7, 15]
-std::uniform_real_distribution<> boilerConsumptionDist(14.0, 16.0); // For boiler consumption [14, 16]
+// Global SIMLIB objects
+Store Boilers("Boilers", 2);         // Incineration plant has 2 boilers
+Queue WasteQueue("WasteQueue");      // Queue for excess waste
+Stat RejectedWaste("RejectedWaste"); // Statistics for rejected waste
+Stat ProcessedWaste("ProcessedWaste"); // Statistics for processed waste
 
-// Histograms
-Histogram heapSizeHistogram("Heap Size Distribution", 0.0, 25.0, 8); // 8 bins, 25 tons each
-Histogram boilerConsumptionHistogram("Boiler Consumption per Operation", 0.0, 20.0, 10); // 10 bins, 2 tons each
+// Define the Waste Process
+class Waste : public Process {
+    double amount; // Amount of waste in tons
 
-// Garbage Truck Arrival Event
-class GarbageTruckArrival : public Event {
+public:
+    Waste(double amt) : amount(amt) {}
+
     void Behavior() override {
-        double waste = truckWasteDist(gen); // Generate waste (7-15 tons)
-
-        if (heap + waste > HEAP_CAPACITY) {
-            flushedWaste += (heap + waste) - HEAP_CAPACITY; // Increment flushed waste
-            heap = HEAP_CAPACITY; // Heap remains at max capacity
-            fprintf(resultsFile, "Heap overflow. Flushed waste: %.2f tons\n", flushedWaste);
-        } else {
-            heap += waste; // Add waste to heap
-            fprintf(resultsFile, "Truck arrived. Added %.2f tons. Current heap: %.2f tons\n", waste, heap);
-        }
-
-        // Record heap size in histogram
-        heapSizeHistogram(heap);
-
-        Activate(Time + Exponential(TRUCKS_ARRIVAL)); // Schedule next truck
-    }
-};
-
-// Boiler Operation Event
-class BoilerOperation : public Event {
-    void Behavior() override {
-        for (int i = 0; i < 2; i++) { // Two boilers
-            double consumption = boilerConsumptionDist(gen); // Each boiler's consumption
-            if (heap >= consumption) {
-                heap -= consumption;
-                boilerWasteProcessed += consumption;
-                fprintf(resultsFile, "Boiler %d processed %.2f tons. Current heap: %.2f tons\n", i + 1, consumption, heap);
+        if (Boilers.Full()) { // Check if both boilers are busy
+            if (WasteQueue.Length() + amount <= HEAP_CAPACITY) {
+                // Queue the waste if there is space
+                Into(WasteQueue);
+                Passivate(); // Wait in the queue
             } else {
-                boilerWasteProcessed += heap;
-                fprintf(resultsFile, "Boiler %d processed %.2f tons (partial). Heap empty.\n", i + 1, heap);
-                heap = 0.0; // Heap is empty
+                // If no space in queue, reject the waste
+                RejectedWaste(amount);
+                fprintf(outputFile, "Waste rejected at time: %f, amount: %.2f\n", fmod(Time, DAY)/HOURS_IN_DAY, amount);
+                return;
             }
-
-            // Record boiler consumption in histogram
-            boilerConsumptionHistogram(consumption);
         }
 
-        // Record heap size in histogram after boilers' operation
-        heapSizeHistogram(heap);
+        // When a boiler becomes available
+        Enter(Boilers, 1);
+        ProcessedWaste(amount); // Log the amount processed
+        Wait(HOUR * amount / BOILER_CAPACITY); // Simulate processing time
+        Leave(Boilers, 1);
 
-        Activate(Time + HOUR); // Schedule next boiler operation (hourly)
+        // If there is waste in the queue, activate it
+        if (!WasteQueue.Empty()) {
+            Waste *nextWaste = static_cast<Waste *>(WasteQueue.GetFirst());
+            nextWaste->Activate();
+        }
     }
 };
 
-// Main Program
-int main() {
-    // Initialize the simulation
-    SetOutput("results.out");
-    Init(0, YEAR); // Simulate for 1 year
+// Define the Generator
+class WasteGenerator : public Event {
+    void Behavior() override {
+        double currentTime = fmod(Time, DAY)/HOURS_IN_DAY; // Get the time of day (modulo 24 hours)
+        double nextArrival;
 
-    // Schedule the first events
-    (new GarbageTruckArrival)->Activate(); // First garbage truck arrival
-    (new BoilerOperation)->Activate();    // First boiler operation
+        // If the time is within working hours, generate a Waste
+        if (currentTime >= WORK_START && currentTime < WORK_END) {
+            double garbageAmount = Uniform(7, 15); // Random amount of garbage between 7-15 tons
+            (new Waste(garbageAmount))->Activate(); // Activate a new Waste process
+            nextArrival = Time + Exponential(10);
+        } else {
+            // If outside working hours, schedule for the next working day
+            double timeUntilNextWorkStart = (floor(Time / HOURS_IN_DAY) + 1) * HOURS_IN_DAY + WORK_START;
+            nextArrival = timeUntilNextWorkStart;
+        }
+
+        // Activate the generator for the next Waste
+        Activate(nextArrival);
+    }
+};
+
+int main() {
+    // RandomSeed(time(nullptr));
+    if (outputFile == NULL)
+        return EXIT_FAILURE;
+    SetOutput("results.out");
+
+    // Initialize simulation (start at 0, run for 1 year)
+    Init(0, YEAR);
+
+    // Create the first generator
+    (new WasteGenerator)->Activate(WORK_START);
 
     // Run the simulation
     Run();
 
-    // Print final results
-    fprintf(resultsFile, "====================================\n");
-    fprintf(resultsFile, "Simulation Results:\n");
-    fprintf(resultsFile, "Total waste flushed on dump: %.2f tons\n", flushedWaste);
-    fprintf(resultsFile, "Total waste processed by boilers: %.2f tons\n", boilerWasteProcessed);
-    fprintf(resultsFile, "====================================\n");
+    // Output results
+    Boilers.Output();
+    WasteQueue.Output();
+    RejectedWaste.Output();
+    ProcessedWaste.Output();
+    SIMLIB_statistics.Output();
 
-    // Output histogram statistics
-    fprintf(resultsFile, "\nHeap Size Histogram:\n");
-    heapSizeHistogram.Output();
-    fprintf(resultsFile, "\nBoiler Consumption Histogram:\n");
-    boilerConsumptionHistogram.Output();
-
+    fclose(outputFile);
     return 0;
 }
