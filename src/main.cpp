@@ -1,13 +1,14 @@
 #include "main.hpp"
 
 // **Debug Mode**
-bool debug = false;            // Set to false to disable debugging
-FILE *debugFile = nullptr;    // Debug output file
+bool debug = false;         // Set to false to disable debugging
+FILE *debugFile = nullptr;  // Debug output file
 
 // **Global SIMLIB Objects**
 Store Boilers("Boilers", 2);
 Queue WasteQueue("WasteQueue");
 Stat RejectedWaste("RejectedWaste");
+Stat GeneratedWaste("GeneratedWaste");
 Stat ProcessedWaste("ProcessedWaste");
 
 
@@ -59,7 +60,15 @@ void WasteGenerator::Behavior() {
     double currentTime = timeOfCurrentDay();
 
     if (isWorkingTime(currentTime)) {
-        int numWastes = Uniform(8, 16);
+        int numWastes;
+        float probability = Uniform(0, 1);
+        if (probability < 0.2) {
+            numWastes = Uniform(8, 10);
+        } else {
+            numWastes = Uniform(10, 16);
+        }
+        GeneratedWaste(numWastes);
+                
         for (int i = 0; i < numWastes; ++i) {
             (new Waste())->Activate();
         }
@@ -97,10 +106,11 @@ int main() {
     (new WasteGenerator)->Activate(WORK_START);
     Run();
 
-    Boilers.Output();
+    GeneratedWaste.Output();
     WasteQueue.Output();
     RejectedWaste.Output();
     ProcessedWaste.Output();
+    Boilers.Output();
     SIMLIB_statistics.Output();
     // Output results to a file for single run
     printf("RejectedWaste: %.0f\n", RejectedWaste.Sum());

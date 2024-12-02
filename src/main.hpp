@@ -26,6 +26,7 @@ extern FILE *debugFile;      // Debug output file
 extern Store Boilers;
 extern Queue WasteQueue;
 extern Stat RejectedWaste;
+extern Stat GeneratedWaste;
 extern Stat ProcessedWaste;
 
 // **Class Definitions**
