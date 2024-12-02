@@ -1,4 +1,6 @@
-# T7: Ekologie a odpadové hospodářství
+# IMS Projekt - T7: Ekologie a odpadové hospodářství
+
+![LogoFIT](https://excel.fit.vutbr.cz/wp-content/themes/Tyler2024/images/fit-vut.png)
 
 Model systému hromadnej obsluhy (SHO) nakladania s odpadom v spalovni
 
