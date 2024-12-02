@@ -32,7 +32,6 @@
   - [4.2 Algoritmus procesu chovania odpadu](#42-algoritmus-procesu-chovania-odpadu)
 - [5 Architektura simulačního modelu](#5-architektúra-simulačného-modelu)
 - [6 Podstata simulačných experimentov a ich priebeh](#6-podstata-simulačných-experimentov-a-ich-priebeh)
-- [6 Záver](#6-záver)
 - [7 Literatúra](#7-literatúra)
 
 <!-- markdownlint-disable MD033 -->
@@ -179,12 +178,6 @@ Obrázok 4: Graf zobrazujúci potencionálne teplo z nevyužiteho odpadu(GJ)
 ![GraphWats](docs/impact_of_trucks_arrival_rate_lostheatgj.png)
 
 Obrázok 5: Graf zobrazujúci potencionálnu elektrickú energiu z nevyužiteho odpadu(GWh)
-
-<!-- markdownlint-disable MD033 -->
-<div style="page-break-after: always;"></div>
-<!-- markdownlint-enable MD033 -->
-
-## 6 Záver
 
 <!-- markdownlint-disable MD033 -->
 <div style="page-break-after: always;"></div>
