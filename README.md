@@ -11,6 +11,10 @@
 - Adam Havlík (**xhavli59**)
 - Martin Knor (**xknorm00**)
 
+<!-- markdownlint-disable MD033 -->
+<div style="page-break-after: always;"></div>
+<!-- markdownlint-enable MD033 -->
+
 ## Obsah
 
 - [1 Úvod](#1-úvod)
@@ -23,10 +27,17 @@
 - [3 Koncepcia modelu](#3-koncepcia-modelu)
   - [3.1 Vyjadrenie konceptuálneho modelu](#31-vyjadrenie-konceptuálneho-modelu)
   - [3.2 Formy konceptuálneho modelu](#32-formy-konceptuálneho-modelu)
-- [4 Architektúra simulačného modelu/simulátoru](#4-architektúra-simulačného-modelu)
-- [5 Podstata simulačného modelu/simulátoru](#5-podstata-simulačných-experimentov)
+- [4 Koncepcia inplementácie](#4-koncepcia-inplementácie)
+  - [4.1 Algoritmus udalosti príjazdu smetiarskeho auta](#41-algoritmus-udalosti-príjazdu-smetiarskeho-auta)
+  - [4.2 Algoritmus procesu chovania odpadu](#42-algoritmus-procesu-chovania-odpadu)
+- [5 Architektura simulačního modelu](#5-architektúra-simulačného-modelu)
+- [6 Podstata simulačných experimentov a ich priebeh](#6-podstata-simulačných-experimentov-a-ich-priebeh)
 - [6 Záver](#6-záver)
 - [7 Literatúra](#7-literatúra)
+
+<!-- markdownlint-disable MD033 -->
+<div style="page-break-after: always;"></div>
+<!-- markdownlint-enable MD033 -->
 
 ## 1 Úvod
 
@@ -41,6 +52,10 @@ Za využitia poznatkov z predmetu Modelovanie a simulácie [[1]](#7-literatúra)
 ### 1.2 Overenie validity modelu
 
 Overenie validity [1, slide 37] modelu prebiehalo analýzou verejne dostupných dát, osobnými rozhovormi s pracovníkmi v odpadovom hospodárstve konfrontovanými s výstupmi s našej simulácie.
+
+<!-- markdownlint-disable MD033 -->
+<div style="page-break-after: always;"></div>
+<!-- markdownlint-enable MD033 -->
 
 ## 2 Rozbor témy, použitých metód a technológii
 
@@ -62,6 +77,10 @@ K vytvoreniu modelu spaľovne bol použitý programovací jazyk C++ pre jeho vys
 
 Symulačný model [1, slide 44] je inplementovaný v jazyku C++, štandarde C++11. Knižnica SIMLIB vo verzii 3.09 [[2]](#7-literatúra). O jednoduché spustenie sa stará program GNU Make.
 
+<!-- markdownlint-disable MD033 -->
+<div style="page-break-after: always;"></div>
+<!-- markdownlint-enable MD033 -->
+
 ## 3 Koncepcia modelu
 
 Návrh konceptuálneho modelu [4, slide 48] reprezentuje systém hromadnej obsluhy (SHO) vychádzajúci z rozboru témy popísanej v kapitole 2.
@@ -82,13 +101,94 @@ Obrázok 2: Petriho sieť spaľovne ZEVO - SAKO Brno
 
 Koncept modelu bol vytvorený za pomoci petriho siete navrhnutej v kapitole 3.1
 
-## 4 Architektúra simulačného modelu
+<!-- markdownlint-disable MD033 -->
+<div style="page-break-after: always;"></div>
+<!-- markdownlint-enable MD033 -->
 
-## 5 Podstata simulačných experimentov
+## 4 Koncepcia inplementácie
+
+Hlavnými prvkam programu sú udalosti príjazdu daľšieho smetiarskeho auta generujúceho proces odpadu. Ich chovanie je algoritmicky popísané nasledovne
+
+### 4.1 Algoritmus udalosti príjazdu smetiarskeho auta
+
+```c
+if (Je pracovná doba) {
+    náhodnáPravdepodobnosť
+    if ( náhodnáPravdepodobnosť < 0.2 ) {
+        dovezeýOdpad = Náhodná(8, 10)
+    } else {
+        dovezeýOdpad = Náhodná(10, 16)
+    }
+            
+    for ( Počet odpadov ) {
+        Vytvor nový odpad
+    }
+    príchodDalšiehoAuta = Time + Exponential(8 * MIN)
+
+} else {
+    príchodDalšiehoAuta = Daľší deň
+}
+
+Opakuj udalosť(príchodDalšiehoAuta);
+```
+
+### 4.2 Algoritmus procesu chovania odpadu
+
+```c
+if ( Kotle sú plné ) {
+        if ( Zásobník nieje plný ) {
+            Odpad je uložený do zásobníku
+            Proces odpadu je uspatý a čaká na aktiváciu
+        } else {
+            Odpad je vyhodený na skládku
+            Proces odpadu končí
+        }
+    }
+
+Alokuj kotol
+Čakaj HOUR/Náhodná(14, 16)
+Uvoľni kotol
+
+if ( Zásobník nieje prázdny ) {
+    Aktivuj ďalší odpad
+}
+```
+
+<!-- markdownlint-disable MD033 -->
+<div style="page-break-after: always;"></div>
+<!-- markdownlint-enable MD033 -->
+
+## 5 Architektúra simulačného modelu
+
+## 6 Podstata simulačných experimentov a ich priebeh
+
+### Postup experimentácie
 
 Jednotka modelov´eho ˇcasu [4, slide 21] odpov´ıd´a minutˇe re´aln´eho ˇcasu.[4, slide 21]
 
+Experiment sa spúšťa pomocou príkazu `make` nasledovaného `make run`. Pri spustení je možné zadať časový interval príchodu smetiarskych aut do spalovne a pocet kotlov s ktorym spalovna operuje. Pre naše úcely nás zaujíma interval príchodov od 4-12 minut a sucasny operacny pocet kotlov a hypoteticky scenar s troma kot. Výsledky experimentu sú následne uložené do súboru `results.out`.
+
+![GraphTons](docs/impact_of_trucks_arrival_rate_rejectedwaste.png)
+
+Obrázok 3: Graf zobrazujúci nezhodnotený odpad v tonách
+
+![GraphWats](docs/impact_of_trucks_arrival_rate_lostelectricitygwh.png)
+
+Obrázok 4: Graf zobrazujúci potencionálne teplo z nevyužiteho odpadu(GJ)
+
+![GraphWats](docs/impact_of_trucks_arrival_rate_lostheatgj.png)
+
+Obrázok 5: Graf zobrazujúci potencionálnu elektrickú energiu z nevyužiteho odpadu(GWh)
+
+<!-- markdownlint-disable MD033 -->
+<div style="page-break-after: always;"></div>
+<!-- markdownlint-enable MD033 -->
+
 ## 6 Záver
+
+<!-- markdownlint-disable MD033 -->
+<div style="page-break-after: always;"></div>
+<!-- markdownlint-enable MD033 -->
 
 ## 7 Literatúra
 
