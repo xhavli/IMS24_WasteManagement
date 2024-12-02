@@ -30,10 +30,9 @@ $(SRC_DIR)/%.o: $(SRC_DIR)/%.cpp
 
 # Clean up build files
 clean:
-	rm -f $(OBJS) $(TARGET) results.out
+	rm -f $(OBJS) $(TARGET) results.out debug.out
 
-rebuilt:
-	clean all
+rebuilt: clean all
 
 run:
 	./main
