@@ -59,7 +59,7 @@ void WasteGenerator::Behavior() {
     double currentTime = timeOfCurrentDay();
 
     if (isWorkingTime(currentTime)) {
-        int numWastes = Uniform(7, 16);
+        int numWastes = Uniform(8, 16);
         for (int i = 0; i < numWastes; ++i) {
             (new Waste())->Activate();
         }
@@ -89,7 +89,7 @@ int main() {
             return EXIT_FAILURE;
         }
     }
-    RandomSeed(time(nullptr));
+    RandomSeed(time(nullptr) + getpid());
 
     SetOutput("results.out");
     Init(0, YEAR);
@@ -102,6 +102,9 @@ int main() {
     RejectedWaste.Output();
     ProcessedWaste.Output();
     SIMLIB_statistics.Output();
+    // Output results to a file for single run
+    printf("RejectedWaste: %.0f\n", RejectedWaste.Sum());
+
 
     if (debug) {
         fclose(debugFile);
