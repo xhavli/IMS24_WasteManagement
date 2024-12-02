@@ -4,6 +4,7 @@
 #include "simlib.h"
 #include <cstdio>
 #include <cmath>
+#include <ctime>
 
 // **Constants**
 // time constants

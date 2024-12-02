@@ -89,6 +89,7 @@ int main() {
             return EXIT_FAILURE;
         }
     }
+    RandomSeed(time(nullptr));
 
     SetOutput("results.out");
     Init(0, YEAR);
