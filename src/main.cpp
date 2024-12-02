@@ -90,7 +90,7 @@ void WasteGenerator::Behavior() {
 
 
 // Main function
-int main() {
+int main(int argc, char *argv[]) {
     if (debug) {
         debugFile = fopen("debug.out", "w");
         if (debugFile == NULL) {
@@ -98,6 +98,15 @@ int main() {
             return EXIT_FAILURE;
         }
     }
+
+    // Parse command-line arguments
+    int boilerCapacity = (argc > 1) ? atoi(argv[1]) : 2; // Default Boilers = 2
+    int trucksArrivalRate = (argc > 2) ? atoi(argv[2]) : 5; // Default Trucks Arrival = 5
+
+    // Set up Boilers and Trucks Arrival Rate
+    Boilers.SetCapacity(boilerCapacity);
+    TRUCKS_ARRIVAL = trucksArrivalRate * MINUTE;
+
     RandomSeed(time(nullptr) + getpid());
 
     SetOutput("results.out");

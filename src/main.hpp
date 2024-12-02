@@ -15,7 +15,7 @@ const int DAY = 24 * HOUR;
 const int YEAR = 365 * DAY;
 const double WORK_START = 6 * HOUR;     // the shift starts at 6:00 AM
 const double WORK_END = 16 * HOUR;      // the shift ends at 4:00 PM (10 hours)
-const int TRUCKS_ARRIVAL = 8 * MINUTE;  // rate at which trucks come in 
+int TRUCKS_ARRIVAL = 8 * MINUTE;  // rate at which trucks come in 
 const double HEAP_CAPACITY = 5000.0;    // the size of the garbage queue in tons
 
 // **Debug Mode**
