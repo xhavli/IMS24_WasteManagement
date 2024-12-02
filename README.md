@@ -42,7 +42,7 @@ Overenie modelu prebiehalo analýzou verejne dostupných dát, osobnými rozhovo
 
 ## 2 Rozbor témy, použitých metód a technológii
 
-V Juhomoravskom kraji sa ročne vyprodukuje približne 658 262 ton zmišaného komunálneho odpadu. Odpad je do spalovne dovážaný priamo smetiarskymi autami z Brna a okolia. Smetiarske auto v závislosti od konfigurácie a prepravovaného materiálu dokáže odviezt 7 až 15 ton materiálu. Autá prichádzajú počas smeny smetiarov s exponenciálnym rozložením 5 minút. Smena smetiara trvá približne 10 hodín. Po príchode auto vysype odpad do zásobníku s kapacitou 5000 ton. Zariadenie pre energetické využitie odpadu ZEVO - SAKO Brno, disponuje dvoma kotlami kde sa pri teplote okolo 850°C spaľuje zmiešaný komunálny odpad. Jeden kotol dokáže spracovať 14 až 16 ton odpadu za hodinu. Pri plnom zatažení dokáže spaľovna spracovať 248 000 ton ročne. Objem spracovaného odpadu redukuje o 90% a hmotnost znižuje takmer na štvrtinu pôvodnej hodnoty čo predstavuje 10 násobné predĺženie životnosti skládky. Výsledkom tohoto procesu je škvára ktorá sa daľej separuje od kovov ktoré sú určené k ďaľšej recyklácií. Zbytok škváry s minimálnym organickým a využiteľným zvýškom sa používa na ďalšie zabezpečenie skládky.
+V Juhomoravskom kraji sa ročne vyprodukuje približne 658 262 ton zmišaného komunálneho odpadu. Odpad je do spalovne dovážaný priamo smetiarskymi autami z Brna a okolia. Smetiarske auto v závislosti od konfigurácie a prepravovaného materiálu dokáže odviezt 7 až 15 ton materiálu. Autá prichádzajú počas smeny smetiarov s exponenciálnym rozložením 8 minút. Smena smetiara trvá približne 10 hodín. Po príchode auto vysype odpad do zásobníku s kapacitou 5000 ton. Zariadenie pre energetické využitie odpadu ZEVO - SAKO Brno, disponuje dvoma kotlami kde sa pri teplote okolo 850°C spaľuje zmiešaný komunálny odpad. Jeden kotol dokáže spracovať 14 až 16 ton odpadu za hodinu. Pri plnom zatažení dokáže spaľovna spracovať 248 000 ton ročne. Objem spracovaného odpadu redukuje o 90% a hmotnost znižuje takmer na štvrtinu pôvodnej hodnoty čo predstavuje 10 násobné predĺženie životnosti skládky. Výsledkom tohoto procesu je škvára ktorá sa daľej separuje od kovov ktoré sú určené k ďaľšej recyklácií. Zbytok škváry s minimálnym organickým a využiteľným zvýškom sa používa na ďalšie zabezpečenie skládky.
 
 Celý proces je znázornený na nasledujúcom obrázku:
 
@@ -64,13 +64,15 @@ Symulačný model je inplementovaný v jazyku C++, štandarde C++11. Knižnica S
 
 Návrh konceptuálneho modelu reprezentuje systém hromadnej obsluhy (SHO) vychádzajúci z rozboru témy popísanej v kapitole 2.
 
-Najvačší rozdiel je zanedbanie odstávky spaľovne na servisné úkony. Keďže odstavenie kotla je časovo a finančne náročné v našej simulácií simulujeme nepretržitú prevádzku po celý rok. To nám vo výsledku vygeneruje niečo viac ako 260 000 ton spracovaného odpadu ročne čo je len o 12 000 viac ako tvrdia oficiálne zdroje. Taktiež sú spomenuté dve odstávky na jar a na jeseň avšak nešpecifikujú dlžku odstávok. Vzhľadom na to, že rozdiel je pri takom veľkom objeme celkového odpadu minimálny nebudeme zavádzať do nášho modelu umelé odstávky spaľovne.
+Zanedbanie odstávky spaľovne na servisné úkony. Keďže odstavenie kotla je časovo a finančne náročné v našej simulácií simulujeme nepretržitú prevádzku po celý rok. To nám vo výsledku vygeneruje niečo viac ako 260 000 ton spracovaného odpadu ročne čo je len o 12 000 viac ako tvrdia oficiálne zdroje. Taktiež sú spomenuté dve odstávky na jar a na jeseň avšak nešpecifikujú dlžku odstávok. Vzhľadom na to, že rozdiel je pri takom veľkom objeme celkového odpadu minimálny nebudeme zavádzať do nášho modelu umelé odstávky spaľovne. Ak uvážime plný výkon oboch kotlov a dve odstávky, každú na týždeň tak môže byť strata 16x2x24x2x7 = 10752 čo sa približuje nami nasimulovanej hodnote.
+
+Dôraz bol kladený na konzistentnosť dát získaných z rôznych zdrojov potrebných pre dosiahnutie reálnejších výstupov simulácie ako aj obecné zoznámenie sa s prolematikov odpadového manažmentu v Juhomoravskom kraji.
 
 ### 3.1 Vyjadrenie konceptuálneho modelu
 
 Model spaľovne je vizualizovaný pomocou petriho siete
 
-![PetrisNet](docs/)
+![PetriNet](docs/PetriNet.png)
 
 Obrázok 2: Petriho sieť spaľovne ZEVO - SAKO Brno
 
